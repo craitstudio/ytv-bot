@@ -1,0 +1,30 @@
+{
+  "name": "exness-affiliation-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for checking account status under Exness referral",
+  "main": "api/webhook.js",
+  "type": "module",
+  "scripts": {
+    "start": "node api/webhook.js",
+    "dev": "node api/webhook.js",
+    "setup-webhook": "node setup-webhook.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "node-telegram-bot-api": "^0.66.0",
+    "telegraf": "^4.15.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "exness",
+    "affiliation",
+    "referral"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

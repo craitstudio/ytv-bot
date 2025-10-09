@@ -1,0 +1,13 @@
+# This project is configured for Vercel deployment
+# This file is created for compatibility but the project uses vercel.json for configuration
+
+[build]
+  # This project doesn't need a build step for Netlify
+  # It's designed for Vercel serverless functions
+  command = "echo 'This project is configured for Vercel deployment'"
+  publish = "."
+
+[[redirects]]
+  from = "/*"
+  to = "/api/webhook"
+  status = 200
