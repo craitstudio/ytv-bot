@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const EXPECTED_WEBHOOK_URL = 'https://ytv-ffzxgc0c5-youngtraderviraj-ctrls-projects.vercel.app/api/webhook';
+const EXPECTED_WEBHOOK_URL = 'https://ytv-4c5pm8887-youngtraderviraj-ctrls-projects.vercel.app/api/webhook';
 
 if (!BOT_TOKEN) {
   console.error('❌ BOT_TOKEN not found');
