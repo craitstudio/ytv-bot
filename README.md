@@ -1,106 +1,99 @@
-# Exness Affiliation Checker Bot
+# Young Trader Viraj Bot
 
-A Telegram bot that checks if user accounts are under your Exness referral program and provides appropriate responses.
+A Telegram bot for Young Trader Viraj that provides VIP channel access, trading education, and broker services through account verification.
 
 ## Features
 
-- ✅ **Account Verification**: Checks if user accounts are under your referral
-- 🎯 **Smart Responses**: Sends group invites for verified accounts or registration links for new users
-- 🔒 **Secure API Integration**: Uses your Exness Partner API with JWT authentication
-- 🚀 **Serverless Deployment**: Ready for Vercel deployment
-- 📱 **User-Friendly**: Simple conversation flow for users
+- **VIP Channel Access** - Verify trading accounts for exclusive group access
+- **Get Funded** - Information about prop trading opportunities
+- **Paid Courses** - Premium trading education with special offers
+- **Partner Brokers** - Exness, XM, and Delta Exchange integration
+- **Website Link** - Direct access to youngtraderviraj.com
+- **Serverless Deployment** - Runs on Vercel with automatic scaling
 
-## Bot Flow
+## Quick Start
 
-1. User starts the bot with `/start`
-2. Bot asks for:
-   - Full Name
-   - Email Address
-   - Account ID (optional)
-3. Bot checks the Exness API for affiliation
-4. **If affiliated**: Sends welcome message + group invite link
-5. **If not affiliated**: Sends account opening/referral link
-
-## Quick Setup
-
-### 1. Create Telegram Bot
-
-1. Message [@BotFather](https://t.me/BotFather) on Telegram
-2. Send `/newbot`
-3. Choose a name and username for your bot
-4. Copy the **Bot Token**
-
-### 2. Configure Environment Variables
-
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Fill in your values:
-   ```env
-   BOT_TOKEN=your_telegram_bot_token_here
-   EXNESS_JWT=JWT eyJhbGciOiJSUzI1NiIsImtpZCI6InVzZXIiLCJ0eXAiOiJKV1QifQ...
-   GROUP_INVITE_LINK=https://t.me/your_group_invite_link
-   ACCOUNT_OPEN_LINK=https://your_referral_account_opening_link
-   ```
-
-### 3. Install Dependencies
-
+### For Production Use
 ```bash
-npm install
+# Deploy and set up webhook automatically
+npm run deploy
 ```
 
-### 4. Deploy to Vercel
-
-#### Option A: Deploy via Vercel CLI
+### For Local Development
 ```bash
-npm install -g vercel
-vercel
-```
+# Switch to local development mode
+npm run local
 
-#### Option B: Deploy via GitHub
-1. Push your code to GitHub
-2. Connect your GitHub repo to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy
-
-### 5. Set Up Webhook
-
-After deployment, set up the webhook:
-
-```bash
-# Add your Vercel URL to .env
-echo "WEBHOOK_URL=https://your-app.vercel.app/api/webhook" >> .env
-
-# Run webhook setup
-npm run setup-webhook
-```
-
-## Local Development
-
-For local testing:
-
-```bash
-# Install dependencies
-npm install
-
-# Set NODE_ENV to development in .env
-echo "NODE_ENV=development" >> .env
-
-# Run the bot
+# Run the bot locally
 npm run dev
 ```
 
-## API Integration
+## Setup
 
-The bot integrates with the Exness Partner Affiliation API:
+1. **Clone and Install**
+   ```bash
+   git clone <repository-url>
+   cd ytv-bot
+   npm install
+   ```
 
-- **Endpoint**: `https://my.exnessaffiliates.com/api/partner/affiliation/`
-- **Method**: POST
-- **Headers**: 
-  - `Authorization: JWT your_jwt_token`
-  - `Content-Type: application/json`
+2. **Environment Variables**
+   
+   Create `.env` file:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Configure your values:
+   ```
+   BOT_TOKEN=your_telegram_bot_token
+   EXNESS_JWT=your_exness_jwt_token
+   GROUP_INVITE_LINK=https://t.me/your_vip_group
+   ACCOUNT_OPEN_LINK=https://your_referral_link
+   ```
+
+3. **Get Telegram Bot Token**
+   - Message [@BotFather](https://t.me/botfather)
+   - Use `/newbot` to create your bot
+   - Copy the token to `.env`
+
+## Bot Flow
+
+1. **Main Menu** - Users see 5 options when they start
+2. **VIP Channel** - Requires account verification under partner brokers
+3. **Account Verification** - Uses Exness API to verify affiliation
+4. **Access Granted** - Verified users get VIP group invite
+5. **New Users** - Non-verified users get account opening links
+
+## Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run deploy` | Deploy to production and set webhook |
+| `npm run local` | Switch to local development mode |
+| `npm run dev` | Run bot locally for testing |
+| `npm run test` | Same as dev (alias) |
+
+## Switching Between Local and Production
+
+### To Production
+```bash
+npm run deploy
+```
+This will:
+- Deploy to Vercel production
+- Set webhook to production URL
+- Bot works even when your computer is off
+
+### To Local Development
+```bash
+npm run local
+npm run dev
+```
+This will:
+- Remove webhook (enables polling)
+- Run bot locally for development
+- Requires your computer to be on
 - **Body**: `{ "email": "user@example.com" }`
 
 ### Expected API Response

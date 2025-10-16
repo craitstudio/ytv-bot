@@ -15,37 +15,49 @@ let userMessages = {}; // Track all messages for each user (except welcome)
 // Set persistent menu for all users (only in development mode)
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   bot.telegram.setMyCommands([
-    { command: 'start', description: 'Start account verification' }
+    { command: 'start', description: 'Show main menu' }
   ]).catch(err => {
     console.log('Failed to set commands (this is normal in serverless):', err.message);
   });
 }
 
-// Function to show welcome message with bot capabilities
+// Function to show welcome message with main menu
 async function showWelcomeMessage(ctx) {
-  const welcomeMsg = `🎯 **Welcome to Multi-Broker Affiliation Checker!**
+  const welcomeMsg = `🎯 **Welcome to Young Trader Viraj!**
 
-🤖 **What I can do:**
-• ✅ Verify your account with supported brokers
-• 🔍 Check if you're under our referral program
-• 🎉 Provide group access for verified accounts
-• 🔗 Share account opening links for new users
+🚀 Your gateway to trading success and exclusive content
 
-**Supported Brokers:**
-🔥 Exness (Active)
-📈 XM (Coming Soon)
-⚡ Delta Exchange (Coming Soon)
-
-👇 **Click the button below to begin verification**`;
-  
-  const keyboard = Markup.keyboard([
-    ['🚀 Start Verification']
-  ]).resize().persistent();
+👇 **Choose what you're looking for:**`;
   
   return ctx.reply(welcomeMsg, { 
     parse_mode: 'Markdown',
-    reply_markup: keyboard
+    reply_markup: { remove_keyboard: true }
   });
+}
+
+// Function to show main menu options
+async function showMainMenu(ctx) {
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.callback('🔥 JOIN VIP CHANNEL', 'menu_vip_channel')],
+    [Markup.button.callback('💰 GET FUNDED', 'menu_get_funded')],
+    [Markup.button.callback('📚 GET PAID COURSES', 'menu_paid_courses')],
+    [Markup.button.callback('🤝 OUR PARTNERS', 'menu_partners')],
+    [Markup.button.callback('🌐 WEBSITE', 'menu_website')]
+  ]);
+
+  const menuMsg = await ctx.reply('📋 **Main Menu**\n\nSelect an option:', { 
+    parse_mode: 'Markdown',
+    ...keyboard
+  });
+  
+  const chatId = ctx.chat.id;
+  // Track this message for potential deletion
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  userMessages[chatId].push(menuMsg.message_id);
+  
+  return menuMsg;
 }
 
 // Cleanup function to remove old messages except welcome
@@ -84,7 +96,8 @@ async function showBrokerSelection(ctx, isReturning = false, isFirstTime = false
   const keyboard = Markup.inlineKeyboard([
     [Markup.button.callback('🔥 Exness', 'broker_exness')],
     [Markup.button.callback('📈 XM', 'broker_xm')],
-    [Markup.button.callback('⚡ Delta Exchange', 'broker_delta')]
+    [Markup.button.callback('⚡ Delta Exchange', 'broker_delta')],
+    [Markup.button.callback('🏠 Back to Main Menu', 'back_to_main_menu')]
   ]);
 
   // Send new message and track it
@@ -100,7 +113,7 @@ async function showBrokerSelection(ctx, isReturning = false, isFirstTime = false
   userMessages[chatId].push(sentMessage.message_id);
 }
 
-// Start command with broker selection
+// Start command with main menu
 bot.start(async (ctx) => {
   const chatId = ctx.chat.id;
   
@@ -117,14 +130,262 @@ bot.start(async (ctx) => {
   
   // Send permanent welcome message only if not already sent
   if (!welcomeMessages[chatId]) {
-    const welcomeMsg = await ctx.reply(
-      '🎯 **Welcome to Multi-Broker Affiliation Checker!**',
-      { parse_mode: 'Markdown', reply_markup: { remove_keyboard: true } }
-    );
+    const welcomeMsg = await showWelcomeMessage(ctx);
     welcomeMessages[chatId] = welcomeMsg.message_id;
   }
   
+  await showMainMenu(ctx);
+});
+
+// Handle main menu options
+bot.action('menu_vip_channel', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.callback('✅ I UNDERSTAND, CONTINUE', 'vip_continue')],
+    [Markup.button.callback('🔙 Back to Main Menu', 'back_to_main_menu')]
+  ]);
+  
+  const vipMsg = `🔥 **JOIN VIP CHANNEL**\n\n⚠️ **Important Notice:**\nTo join our VIP channel, you need to have a trading account under us with one of our partner brokers.\n\n✅ **What you'll get:**\n• Exclusive trading signals\n• Market analysis\n• Direct access to Viraj\n• Premium content\n\n👇 **Ready to verify your account?**`;
+  
+  const sentMessage = await ctx.reply(vipMsg, { 
+    parse_mode: 'Markdown',
+    ...keyboard
+  });
+  
+  // Track this message for potential deletion
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  userMessages[chatId].push(sentMessage.message_id);
+});
+
+bot.action('vip_continue', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  // Clear previous messages and show broker selection
+  await cleanupChatMessages(ctx, chatId);
+  
+  // Initialize message tracking for this user
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  
   await showBrokerSelection(ctx, false, true);
+});
+
+bot.action('menu_get_funded', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.callback('🔙 Back to Main Menu', 'back_to_main_menu')]
+  ]);
+  
+  const fundedMsg = `💰 **GET FUNDED**\n\n🚀 **Prop Trading Opportunities**\n\n• Partner with top prop firms\n• Get funded up to $200K\n• Keep 80-90% of profits\n• No personal risk\n\n📞 **Contact us for:**\n• Prop firm recommendations\n• Application assistance\n• Trading strategies\n\n💬 Contact: @YourContactHandle`;
+  
+  const sentMessage = await ctx.reply(fundedMsg, { 
+    parse_mode: 'Markdown',
+    ...keyboard
+  });
+  
+  // Track this message for potential deletion
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  userMessages[chatId].push(sentMessage.message_id);
+});
+
+bot.action('menu_paid_courses', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.callback('🔙 Back to Main Menu', 'back_to_main_menu')]
+  ]);
+  
+  const coursesMsg = `📚 **GET PAID COURSES**\n\n🎓 **Premium Trading Education**\n\n• Complete trading masterclass\n• Risk management strategies\n• Technical analysis deep dive\n• Live trading sessions\n• 1-on-1 mentorship\n\n💎 **Special Offer:**\nGet 50% off with verified account!\n\n📞 Contact: @YourContactHandle`;
+  
+  const sentMessage = await ctx.reply(coursesMsg, { 
+    parse_mode: 'Markdown',
+    ...keyboard
+  });
+  
+  // Track this message for potential deletion
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  userMessages[chatId].push(sentMessage.message_id);
+});
+
+bot.action('menu_partners', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.callback('🔥 Exness', 'partner_exness')],
+    [Markup.button.callback('📈 XM', 'partner_xm')],
+    [Markup.button.callback('⚡ Delta Exchange', 'partner_delta')],
+    [Markup.button.callback('🔙 Back to Main Menu', 'back_to_main_menu')]
+  ]);
+  
+  const partnersMsg = `🤝 **OUR PARTNERS**\n\n💼 **Trusted Broker Partners**\n\nChoose a broker to learn more and get exclusive benefits:`;
+  
+  const sentMessage = await ctx.reply(partnersMsg, { 
+    parse_mode: 'Markdown',
+    ...keyboard
+  });
+  
+  // Track this message for potential deletion
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  userMessages[chatId].push(sentMessage.message_id);
+});
+
+bot.action('menu_website', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.url('🌐 Visit Website', 'https://www.youngtraderviraj.com')],
+    [Markup.button.callback('🔙 Back to Main Menu', 'back_to_main_menu')]
+  ]);
+  
+  const websiteMsg = `🌐 **VISIT OUR WEBSITE**\n\n🚀 **www.youngtraderviraj.com**\n\n📖 **What you'll find:**\n• Trading blog & insights\n• Market analysis\n• Educational resources\n• Success stories\n• Contact information\n\n👆 **Click the button above to visit**`;
+  
+  const sentMessage = await ctx.reply(websiteMsg, { 
+    parse_mode: 'Markdown',
+    ...keyboard
+  });
+  
+  // Track this message for potential deletion
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  userMessages[chatId].push(sentMessage.message_id);
+});
+
+// Handle partner broker info (from partners menu)
+bot.action('partner_exness', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.callback('🚀 Open Exness Account', 'open_exness_account')],
+    [Markup.button.callback('✅ Verify Existing Account', 'verify_exness_account')],
+    [Markup.button.callback('🔙 Back to Partners', 'menu_partners')]
+  ]);
+  
+  const exnessInfo = `🔥 **EXNESS**\n\n🏆 **Why Choose Exness:**\n• Zero commission trading\n• Unlimited leverage up to 1:2000\n• Instant withdrawals\n• Multi-asset platform\n• Regulated & trusted globally\n\n🎁 **Exclusive Benefits:**\n• VIP support through us\n• Special bonuses\n• Priority processing\n\n👇 **Choose an option:**`;
+  
+  const sentMessage = await ctx.reply(exnessInfo, { 
+    parse_mode: 'Markdown',
+    ...keyboard
+  });
+  
+  // Track this message for potential deletion
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  userMessages[chatId].push(sentMessage.message_id);
+});
+
+bot.action('partner_xm', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.callback('🔙 Back to Partners', 'menu_partners')]
+  ]);
+  
+  const xmInfo = `📈 **XM**\n\n🚀 **Coming Soon!**\n\nWe're working on bringing you exclusive XM benefits:\n• No deposit bonuses\n• Competitive spreads\n• Advanced trading platforms\n• Educational resources\n\n📞 Stay tuned for updates!`;
+  
+  const sentMessage = await ctx.reply(xmInfo, { 
+    parse_mode: 'Markdown',
+    ...keyboard
+  });
+  
+  // Track this message for potential deletion
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  userMessages[chatId].push(sentMessage.message_id);
+});
+
+bot.action('partner_delta', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.callback('🔙 Back to Partners', 'menu_partners')]
+  ]);
+  
+  const deltaInfo = `⚡ **DELTA EXCHANGE**\n\n🚀 **Coming Soon!**\n\nWe're working on bringing you exclusive Delta Exchange benefits:\n• Crypto derivatives trading\n• Advanced options strategies\n• Low fees\n• High liquidity\n\n📞 Stay tuned for updates!`;
+  
+  const sentMessage = await ctx.reply(deltaInfo, { 
+    parse_mode: 'Markdown',
+    ...keyboard
+  });
+  
+  // Track this message for potential deletion
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  userMessages[chatId].push(sentMessage.message_id);
+});
+
+// Handle account opening
+bot.action('open_exness_account', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.url('🚀 Open Account Now', process.env.ACCOUNT_OPEN_LINK || 'https://your_referral_account_opening_link')],
+    [Markup.button.callback('🔙 Back to Partners', 'menu_partners')]
+  ]);
+  
+  const openAccountMsg = `🚀 **OPEN EXNESS ACCOUNT**\n\n🎉 **Get Started Today:**\n• Click the button below\n• Complete registration\n• Verify your account\n• Start trading with exclusive benefits\n\n📞 **Need help?** Contact us after opening!`;
+  
+  const sentMessage = await ctx.reply(openAccountMsg, { 
+    parse_mode: 'Markdown',
+    ...keyboard
+  });
+  
+  // Track this message for potential deletion
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  userMessages[chatId].push(sentMessage.message_id);
+});
+
+// Handle account verification
+bot.action('verify_exness_account', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  // Clear previous messages and show broker selection
+  await cleanupChatMessages(ctx, chatId);
+  
+  // Initialize message tracking for this user
+  if (!userMessages[chatId]) {
+    userMessages[chatId] = [];
+  }
+  
+  await showBrokerSelection(ctx, false, true);
+});
+
+// Handle back to main menu
+bot.action('back_to_main_menu', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  
+  // Clear user state and delete all messages except welcome
+  await cleanupChatMessages(ctx, chatId);
+  
+  await showMainMenu(ctx);
 });
 
 // Handle text messages based on conversation state
@@ -133,38 +394,33 @@ bot.on('text', async (ctx) => {
   const user = userStates[chatId];
   const messageText = ctx.message.text.trim();
   
-  // Handle Start Verification button press
+  // Handle any button presses that might come from old sessions
   if (messageText === '🚀 Start Verification') {
-    // Clear any existing user state and messages
+    // Redirect to main menu
     await cleanupChatMessages(ctx, chatId);
-    
-    // Mark user as no longer first-time
     delete firstTimeUsers[chatId];
     
-    // Initialize message tracking for this user
     if (!userMessages[chatId]) {
       userMessages[chatId] = [];
     }
     
-    // Send permanent welcome message only if not already sent
     if (!welcomeMessages[chatId]) {
-      const welcomeMsg = await ctx.reply(
-        '🎯 **Welcome to Multi-Broker Affiliation Checker!**',
-        { parse_mode: 'Markdown', reply_markup: { remove_keyboard: true } }
-      );
+      const welcomeMsg = await showWelcomeMessage(ctx);
       welcomeMessages[chatId] = welcomeMsg.message_id;
     }
     
-    await showBrokerSelection(ctx, false, true);
+    await showMainMenu(ctx);
     return;
   }
   
-  // If no user state exists, show welcome message and broker selection
+  // If no user state exists, show welcome message and main menu
   if (!user) {
     // Check if this is a first-time user
     if (!firstTimeUsers[chatId]) {
       firstTimeUsers[chatId] = true;
-      await showWelcomeMessage(ctx);
+      const welcomeMsg = await showWelcomeMessage(ctx);
+      welcomeMessages[chatId] = welcomeMsg.message_id;
+      await showMainMenu(ctx);
       return;
     }
     return;
@@ -194,9 +450,10 @@ bot.on('text', async (ctx) => {
       }
       
       user.email = email;
-      user.step = 'exness_account';
+      user.step = 'exness_client_id';
       
       const keyboard = Markup.inlineKeyboard([
+        [Markup.button.callback('⏭️ Skip Client ID', 'skip_client_id')],
         [Markup.button.callback('🔙 Back to Email', 'back_to_email')],
         [Markup.button.callback('🏠 Back to Brokers', 'back_to_brokers')]
       ]);
@@ -204,23 +461,53 @@ bot.on('text', async (ctx) => {
       // DON'T delete user's email message - preserve it
       // The user wants to see their email remain visible
       
-      const accountMsg = await ctx.reply('🆔 **Please enter your Account ID** (optional - type "skip" if you don\'t have one):', { 
-        parse_mode: 'Markdown',
-        ...keyboard
+      // Send instruction message
+      const instructionMsg = await ctx.reply('🆔 **Please enter your Client ID**\n\n📍 You can find your Client ID in your Exness Personal Area:\n\n💡 **Or type "skip" if you don\'t have it**', { 
+        parse_mode: 'Markdown'
       });
       
       // Track this message for potential deletion
       if (!userMessages[chatId]) {
         userMessages[chatId] = [];
       }
-      userMessages[chatId].push(accountMsg.message_id);
+      userMessages[chatId].push(instructionMsg.message_id);
+      
+      // Send image showing where to find Client ID
+      try {
+        const imageMsg = await ctx.replyWithPhoto(
+          'https://via.placeholder.com/600x400/2196F3/FFFFFF?text=Exness+Client+ID+Location', // Placeholder - replace with actual screenshot
+          {
+            caption: '👆 **Where to find your Client ID:**\n\n1️⃣ Login to your Exness Personal Area\n2️⃣ Go to "My Account" section\n3️⃣ Your Client ID is displayed at the top\n\n💡 It\'s usually a 8-character code like "ab12cd34"\n\n⏭️ **Can\'t find it? Use the Skip button below**',
+            parse_mode: 'Markdown',
+            ...keyboard
+          }
+        );
+        
+        userMessages[chatId].push(imageMsg.message_id);
+      } catch (error) {
+        // If image fails, send text instructions
+        const fallbackMsg = await ctx.reply('📋 **How to find your Client ID:**\n\n1️⃣ Login to your Exness Personal Area\n2️⃣ Go to "My Account" section\n3️⃣ Your Client ID is displayed at the top\n\n💡 It\'s usually a 8-character code like "ab12cd34"\n\n👇 **Please enter your Client ID or type "skip":**', { 
+          parse_mode: 'Markdown',
+          ...keyboard
+        });
+        
+        userMessages[chatId].push(fallbackMsg.message_id);
+      }
+      
       return;
     }
 
-    if (user.step === 'exness_account') {
-      user.accountId = ctx.message.text.trim();
+    if (user.step === 'exness_client_id') {
+      const clientIdInput = ctx.message.text.trim().toLowerCase();
       
-      // DON'T delete user's account ID message - preserve it
+      // Check if user wants to skip
+      if (clientIdInput === 'skip' || clientIdInput === 'Skip') {
+        user.clientId = 'Skipped';
+      } else {
+        user.clientId = ctx.message.text.trim();
+      }
+      
+      // DON'T delete user's client ID message - preserve it
       // The user wants to see their input remain visible
       
       // Process Exness verification immediately
@@ -317,6 +604,21 @@ bot.action('back_to_brokers', async (ctx) => {
   await showBrokerSelection(ctx, true);
 });
 
+// Handle skip client ID
+bot.action('skip_client_id', async (ctx) => {
+  ctx.answerCbQuery();
+  const chatId = ctx.chat.id;
+  const user = userStates[chatId];
+  
+  if (user && user.broker === 'exness' && user.step === 'exness_client_id') {
+    user.clientId = 'Skipped';
+    
+    // Process Exness verification
+    await processExnessVerification(ctx, user);
+    delete userStates[chatId];
+  }
+});
+
 // Handle back to email step
 bot.action('back_to_email', async (ctx) => {
   ctx.answerCbQuery();
@@ -327,7 +629,7 @@ bot.action('back_to_email', async (ctx) => {
   if (user && user.broker === 'exness') {
     user.step = 'exness_email';
     delete user.email;
-    delete user.accountId;
+    delete user.clientId;
     
     const keyboard = Markup.inlineKeyboard([
       [Markup.button.callback('🔙 Back to Brokers', 'back_to_brokers')]
@@ -409,6 +711,9 @@ async function processExnessVerification(ctx, user) {
       const clientUid = data.client_uid || 'N/A';
       
       let successMsg = `✅ **Verified with Exness!**\n\nYour account is under our referral program!\n\n`;
+      if (user.clientId && user.clientId !== 'Skipped') {
+        successMsg += `🆔 **Your Client ID:** ${user.clientId}\n`;
+      }
       successMsg += `👤 **Client UID:** ${clientUid}\n`;
       
       if (accounts.length > 0) {
@@ -417,49 +722,43 @@ async function processExnessVerification(ctx, user) {
       
       await ctx.reply(successMsg, { parse_mode: 'Markdown' });
       
-      // Send group invite with navigation and persistent start button
+      // Send exclusive welcome message and VIP group invite
+      const username = ctx.from.username ? `@${ctx.from.username}` : ctx.from.first_name || 'Trader';
+      const firstName = ctx.from.first_name || 'Trader';
+      
+      const exclusiveWelcome = `🎉 **CONGRATULATIONS ${firstName.toUpperCase()}!** 🎉\n\n✨ **You are now part of our EXCLUSIVE VIP community!**\n\n🔥 **What you get access to:**\n• Premium trading signals\n• Live market analysis\n• Direct access to Viraj\n• Exclusive trading strategies\n• Priority support\n• Special bonuses & offers\n\n👑 **Welcome to the VIP family!**`;
+      
+      await ctx.reply(exclusiveWelcome, { parse_mode: 'Markdown' });
+      
+      // Send VIP group link with user-specific message
+      const vipGroupMsg = `🚀 **YOUR EXCLUSIVE VIP GROUP ACCESS**\n\nhttps://t.me/+un8XwGD0qJU1Nzc1\n\n⚠️ **IMPORTANT:**\n• This link is for ${username} only\n• Link expires when shared with others\n• Keep it private and secure\n\n🎯 **Join now and start your VIP journey!**`;
+      
       const inlineKeyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('🔄 Check Another Account', 'back_to_brokers')]
+        [Markup.button.url('🔥 Join VIP Group', 'https://t.me/+un8XwGD0qJU1Nzc1')],
+        [Markup.button.callback('🔄 Check Another Account', 'back_to_brokers')],
+        [Markup.button.callback('🏠 Main Menu', 'back_to_main_menu')]
       ]);
       
-      const persistentKeyboard = Markup.keyboard([
-        ['🚀 Start Verification']
-      ]).resize().persistent();
-      
-      if (process.env.GROUP_INVITE_LINK && process.env.GROUP_INVITE_LINK !== 'https://t.me/your_group_invite_link') {
-        await ctx.reply(`🎉 **Welcome to our exclusive group!**\n\n${process.env.GROUP_INVITE_LINK}`, { 
-          ...inlineKeyboard,
-          reply_markup: persistentKeyboard
-        });
-      } else {
-        await ctx.reply('🎉 **You\'re verified!** Contact admin for group access.', { 
-          ...inlineKeyboard,
-          reply_markup: persistentKeyboard
-        });
-      }
+      await ctx.reply(vipGroupMsg, { 
+        parse_mode: 'Markdown',
+        ...inlineKeyboard
+      });
     } else {
       await ctx.reply('❌ **Account Not Found**\n\nThis account is not under our Exness referral program.', { parse_mode: 'Markdown' });
       
-      // Send account opening link with navigation and persistent start button
+      // Send transfer instructions with YouTube video
+      const transferMsg = `🔄 **Transfer Your Account to Us**\n\n📺 **Watch this video to learn how to transfer:**\nhttps://www.youtube.com/watch?v=8jWSDxqzZjs\n\n🏷️ **Use Partner Code:** \`YTV\`\n\n✅ **After transfer is complete:**\n• Come back to this bot\n• Use "Check Another Account" to verify\n• Get instant VIP access!`;
+      
       const inlineKeyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('🔄 Check Another Account', 'back_to_brokers')]
+        [Markup.button.url('📺 Watch Transfer Video', 'https://www.youtube.com/watch?v=8jWSDxqzZjs')],
+        [Markup.button.callback('🔄 Check Another Account', 'back_to_brokers')],
+        [Markup.button.callback('🏠 Main Menu', 'back_to_main_menu')]
       ]);
       
-      const persistentKeyboard = Markup.keyboard([
-        ['🚀 Start Verification']
-      ]).resize().persistent();
-      
-      if (process.env.ACCOUNT_OPEN_LINK && process.env.ACCOUNT_OPEN_LINK !== 'https://your_referral_account_opening_link') {
-        await ctx.reply(`👉 **Open your Exness account with us:**\n\n${process.env.ACCOUNT_OPEN_LINK}`, { 
-          ...inlineKeyboard,
-          reply_markup: persistentKeyboard
-        });
-      } else {
-        await ctx.reply('👉 **Contact admin for account opening link.**', { 
-          ...inlineKeyboard,
-          reply_markup: persistentKeyboard
-        });
-      }
+      await ctx.reply(transferMsg, { 
+        parse_mode: 'Markdown',
+        ...inlineKeyboard
+      });
     }
   } catch (error) {
     console.error('Exness API error:', error.response?.data || error.message);
@@ -489,17 +788,13 @@ async function processExnessVerification(ctx, user) {
     }
     
     const inlineKeyboard = Markup.inlineKeyboard([
-      [Markup.button.callback('🔄 Try Again', 'back_to_brokers')]
+      [Markup.button.callback('🔄 Try Again', 'back_to_brokers')],
+      [Markup.button.callback('🏠 Main Menu', 'back_to_main_menu')]
     ]);
-    
-    const persistentKeyboard = Markup.keyboard([
-      ['🚀 Start Verification']
-    ]).resize().persistent();
     
     await ctx.reply(errorMessage, { 
       parse_mode: 'Markdown',
-      ...inlineKeyboard,
-      reply_markup: persistentKeyboard
+      ...inlineKeyboard
     });
   }
 }
